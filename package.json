@@ -8,7 +8,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build:css": "tailwindcss build styles.css -o dist/styles.css"
   },
   "repository": {
     "type": "git",
@@ -22,7 +23,10 @@
   },
   "homepage": "https://github.com/ddelgado25/Team-Profile-Generator#readme",
   "dependencies": {
-    "inquirer": "^8.2.4"
+    "autoprefixer": "^10.4.14",
+    "inquirer": "^8.2.4",
+    "postcss": "^8.4.23",
+    "tailwindcss": "^3.3.2"
   },
   "devDependencies": {
     "jest": "^29.5.0"

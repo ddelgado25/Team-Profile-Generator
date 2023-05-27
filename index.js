@@ -1,206 +1,144 @@
-const Employee = require("./lib/Employee");
-const Engineer = require("./lib/Engineer");
-const Intern = require("./lib/Intern");
-const Manager = require("./lib/Manager");
-const inquirer = require("inquirer");
-const path = require("path");
-const fs = require("fs");
+const fs = require('fs'); 
+const inquirer = require('inquirer');
+const pageHTML = require('./src/html');
+const Manager = require('./lib/Manager');
+const Engineer = require('./lib/Engineer');
+const Intern = require('./lib/Intern'); 
 
-const OUTPUT_DIR = path.resolve(__dirname, "output");
-const outputPath = path.join(OUTPUT_DIR, "team.html");
+const teamProfile = [];
 
-const render = require("./lib/htmlRenderer");
-
-
-const teamArray = [];
-
-// Team Member Questions:
-
-//Engineer: 
-const engineerQuestions = [
-
-    {
-        type: 'input',
-        name: 'engineerName',
-        message: 'Please enter the name of the engineer.'
-    },
-
-    {
-        type: 'input',
-        name: 'engineerID',
-        message: 'Please enter the engineers ID number'
-    },
-
-    {
-        type: 'input',
-        name: 'engineerEmail',
-        message: 'Please enter the engineers email address'
-    },
-
-    {
-        type: 'input',
-        name: 'engineerGithub',
-        message: 'Please Enter engineers gitHub profile name'
-    },
-]
-
-//Intern:
-const internQuestions = [
-
-    {
-        type: 'input',
-        name: 'internName',
-        message: 'Please enter the name of the intern.'
-    },
-
-    {
-        type: 'input',
-        name: 'internID',
-        message: 'Please enter the interns ID number',
-    },
-
-    {
-        type: 'input',
-        name: 'internEmail',
-        message: 'Please enter the interns email address'
-    },
-
-    {
-        type: 'input',
-        name: 'internSchool',
-        message: 'What School does the intern currently attend if any? If the interns does not currently attended any school please put "N/A". ',
-    },
-]
-
-// Manager: 
-const managerQuestions = [
-
-    {
-        type: 'input',
-        name: 'managerName',
-        message: 'Please enter the name of the manager that runs this team.'
-    },
-
-    {
-        type: 'input',
-        name: 'managerID',
-        message: 'Please enter the managers ID number'
-    },
-
-    {
-        type: 'input',
-        name: 'managerEmail',
-        message: 'Please enter the managers email adress'
-    },
-
-    {
-        type: 'input',
-        name: 'office',
-        message: 'Please enter the managers office number'
-    },
-]
-
-//Question to add another User/Team member
-
-const anotherOne = [
-    {
-        type: 'list',
-        name: 'nextEmployee',
-        message: 'Select the the next type of team member you would like to add, if you are done select "Done" to generate your team ',
-        choices: ['Intern', 'Engineer', 'Done']
-    }
-]
-
-
-
-function init() {
-    //starts with the manager function
-    managerPrompt();
-}
-
-
-//function that will prompt the user to select the next type of employee they are adding 
-function next() {
-    inquirer.prompt(anotherOne).then((response) => {
-
-        console.log(response);
-        switch (response.nextEmployee) {
-            case 'Engineer':
-                engineerPrompt();
-                break;
-            case 'Intern':
-                internPrompt();
-                break;
-            case 'Done':
-                console.log('Creating your team!')
-                createTeam();
-        }
-    })
-}
-//Function for Manager prompt
-function managerPrompt() {
-    inquirer.prompt(managerQuestions).then((response) => {
-
-        let name = response.managerName;
-        let id = response.managerID;
-        let email = response.managerEmail;
-        let office = response.office;
-        // creats an object for this manager 
-        const manager = new Manager(name, id, email, office);
-        //pushes the new manager object to the empty array to be used later 
-        teamArray.push(manager);
+const newManager = () => {
+    return inquirer.prompt ([
+        {
+            type: 'input',
+            name: 'name',
+            message: 'Who is the manager of this team?'
+           
+        },
+        {
+            type: 'input',
+            name: 'id',
+            message: "Please enter the managers ID."
+           
+        },
+        {
+            type: 'input',
+            name: 'email',
+            message: "Please enter the managers email.",
     
-        console.log(teamArray);
+        },
+        {
+            type: 'input',
+            name: 'officeNumber',
+            message: "Please enter the manager's office number",
+            
+        }
+    ])
+    .then(managerData => {
+        const  {name, id, email, officeNumber} = managerData; 
+        const manager = new Manager (name, id, email, officeNumber);
 
-        next();
+        teamProfile.push(manager);
     })
-}
-//Function for Engineer prompt
-function engineerPrompt() {
-    inquirer.prompt(engineerQuestions).then((response) => {
+};
 
-        let name = response.engineerName;
-        let id = response.engineerID;
-        let email = response.engineerEmail;
-        let github = response.engineerGithub;
-        // creats an object for this manager 
-        const engineer = new Engineer(name, id, email, github);
+const newEmployee = () => {
 
-        teamArray.push(engineer);
-        console.log(teamArray);
-       
-        next();
-    })
-}
+    return inquirer.prompt ([
+        {
+            type: 'list',
+            name: 'role',
+            message: "Please choose your employees role",
+            choices: ['Engineer', 'Intern']
+        },
+        {
+            type: 'input',
+            name: 'name',
+            message: "What's the name of the employee?", 
+            
+        },
+        {
+            type: 'input',
+            name: 'id',
+            message: "Please enter the employees ID.",
+            
+        },
+        {
+            type: 'input',
+            name: 'email',
+            message: "Please enter the employees email.",
+            
+        },
+        {
+            type: 'input',
+            name: 'github',
+            message: "Please enter the employees github username.",
+            when: (input) => input.role === "Engineer",
+            
+        },
+        {
+            type: 'input',
+            name: 'school',
+            message: "Please enter the interns school",
+            when: (input) => input.role === "Intern",
+            
+        },
+        {
+            type: 'confirm',
+            name: 'confirmAdd',
+            message: 'Would you like to add more team members?',
+            default: false
+        }
+    ])
+    .then(employeeData => {
+        let {name, id, email, role, github, school, confirmAdd} = employeeData;
+        let employee; 
 
-//Function for Intern prompt
-function internPrompt() {
-    inquirer.prompt(internQuestions).then((response) => {
+        if (role === "Engineer") {
+            employee = new Engineer (name, id, email, github);
 
-        let name = response.internName;
-        let id = response.internID;
-        let email = response.internEmail;
-        let school = response.internSchool;
+        } 
+        else if (role === "Intern") {
+            employee = new Intern (name, id, email, school);
 
-        const intern = new Intern(name, id, email, school);
+        }
 
-        teamArray.push(intern);
-        console.log(teamArray);
+        teamProfile.push(employee); 
 
-       
-        next();
-    })
-}
+        if (confirmAdd) {
+            return newEmployee(teamProfile);
 
-//function to Create the file 
-function createTeam() {
-    fs.writeFile(outputPath, render(teamArray), function (err) {
-        if (err) {
-            return console.log(err)
+        } 
+        else {
+            return teamProfile;
+
         }
     })
 
-}
+};
 
-//calls the initiating function 
-init();
+const writeFile = data => {
+    fs.writeFile('./dist/index.html', data, err => {
+        if (err) {
+            console.log(err);
+            return;
+        } 
+        else {
+            console.log("Your team has officially been generated!")
+        }
+    })
+}; 
+
+const initApp = () => {
+    newManager()
+        .then(newEmployee)
+        .then(teamProfile => { 
+            return pageHTML(teamProfile);
+
+    })
+        .then(pageHTML => {
+            return writeFile(pageHTML);
+
+  })};
+
+  initApp();
